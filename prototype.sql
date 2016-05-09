@@ -70,7 +70,7 @@ county_agg_apps.loan_average AS app_loan_avg,
 county_agg_apps.income_average AS app_income_avg,
 county_agg_apps.count_apps AS count_apps,
 county_agg_apps.app_value,
-ROUND((county_agg_orig.count_orig::numeric / (county_agg_orig.count_orig::numeric + county_agg_apps.count_apps::numeric)),2)
+ROUND(((county_agg_orig.count_orig::numeric / (county_agg_orig.count_orig::numeric + county_agg_apps.count_apps::numeric))*100),2) AS orig_rate
 
 
 FROM rates
