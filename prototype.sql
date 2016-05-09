@@ -37,6 +37,8 @@ SELECT year, state, county,
         AND lien = '1'
         AND income not like '%NA%'
         AND income not like '%na% '
+        AND income != '    '
+        AND amount != '     '
         AND amount not like '%NA%'
         AND amount not like '%na%'
         GROUP BY state, county, year ),
@@ -54,6 +56,8 @@ county_agg_apps AS (SELECT year, state, county,
         AND lien = '1'
         AND income not like '%NA%'
         AND income not like '%na% '
+	AND income != '    '
+        AND amount != '     '
         AND amount not like '%NA%'
         AND amount not like '%na%'
         GROUP BY state, county, year )
