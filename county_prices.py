@@ -13,10 +13,9 @@ cur = connector.connect() #connect and return connection
 #list of HMDA years to use
 #property type appears in 2004
 #FIXME reload and clean 2004
+#FIXME: add property type into 2004 and beyond?
 hmda_tables = ['hmdalar2000', 'hmdalar2001', 'hmdalar2002', 'hmdalar2003', 'hmdalar2004', 'hmdalar2005', 'hmdalar2006',
 		'hmdalar2007', 'hmdalar2008', 'hmdalar2009', 'hmdalar2010', 'hmdalar2011', 'hmdalar2012', 'hmdalar2013', 'hmdalar2014']
-
-
 
 #selects application information for single family homes
 first = True
@@ -43,6 +42,7 @@ for table in hmda_tables[14:]:
 	#print SQL
 	cur.execute(SQL)
 	data = cur.fetchall()
+
 	for row in data:
 		print row
 	#print table, "\n", SQL, "\n\n"

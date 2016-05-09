@@ -21,7 +21,10 @@ Rows with incorrectly formatted data were not used. This removed between 15 and 
 
 Rows with empty strings, or NA for income or loan amount were not used.
 
+Rows with blank rate spread strings were omitted. FIXME: check to see if this is a data parsing or loading error.
+
 To calculate a multiple of loan amount to income, loan amounts were taken from conventional products and multiplied by 0.80.
 
 ### Notes:
 Income Multiple - average loan amount has been divided by 0.80. All loans in the analysis were conventional loans.
+
