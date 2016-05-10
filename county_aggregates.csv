@@ -1,4 +1,4 @@
-,year,state,county,loan_average,income_average,count_of_apps,app_volume
+,year,state,county,loan_average_app,income_average_app,count_app,value_app
 0,2000,13,005,42.91,33.63,334,14332
 1,2000,25,025,172.26,92.79,23620,4068697
 2,2000,55,065,61.86,45.41,422,26106
