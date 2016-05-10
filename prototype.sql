@@ -38,8 +38,9 @@ county_agg_orig AS (
         ROUND(avg(amount::INTEGER),2) AS loan_average,
         ROUND(avg(income::INTEGER),2) AS income_average,
         COUNT(concat(agency, rid)) AS count_orig,
-        SUM(amount::INTEGER) AS orig_value
-
+        SUM(amount::INTEGER) AS value_orig,
+        SUM(income::INTEGER) AS total_income_orig
+	
     FROM hmdalar2004
     
     WHERE loan_type = '1'
@@ -62,8 +63,9 @@ SELECT year, state, county,
 	CONCAT(state, county) AS fips,
         ROUND(AVG(amount::INTEGER),2) AS loan_average,
         ROUND(AVG(income::INTEGER),2) AS income_average,
-        COUNT(CONCAT(agency, rid)) AS count_apps,
-        SUM(amount::INTEGER) AS app_value
+        COUNT(CONCAT(agency, rid)) AS count_app,
+        SUM(amount::INTEGER) AS value_app,
+        SUM(income::INTEGER) AS total_income_app
         
         FROM hmdalar2004
         
@@ -82,19 +84,23 @@ SELECT year, state, county,
         
         GROUP BY state, county, year )
         
-SELECT rates.year, rates.state, rates.county, rates.has_rs, rates2.no_rs, 
+SELECT rates.year, rates.state, rates.county, rates.fips, rates.has_rs, rates2.no_rs, 
 ROUND(rates.avg_rate_spread, 2) AS avg_rs, 
 ROUND(((rates.has_rs::NUMERIC / (rates2.no_rs::NUMERIC + rates.has_rs::NUMERIC))*100),2) AS rs_ratio,
 county_agg_orig.loan_average, 
 county_agg_orig.income_average, 
 county_agg_orig.count_orig, 
-county_agg_orig.orig_value,
-round(((county_agg_orig.loan_average::NUMERIC /.8) / county_agg_orig.income_average::NUMERIC),2) AS income_multiple,
+county_agg_orig.value_orig,
+ROUND((value_orig::NUMERIC / total_income_orig::NUMERIC),2) AS total_mult_orig,
+ROUND(((value_app::NUMERIC / 0.80) / total_income_app::NUMERIC),2) AS total_mult_app,
+ROUND(((county_agg_apps.loan_average::NUMERIC / 0.80) / county_agg_apps.income_average::NUMERIC),2) AS income_multiple_app,
+ROUND(((county_agg_orig.loan_average::NUMERIC /0.80) / county_agg_orig.income_average::NUMERIC),2) AS income_multiple_orig,
+
 county_agg_apps.loan_average AS app_loan_avg,
 county_agg_apps.income_average AS app_income_avg,
-county_agg_apps.count_apps AS count_apps,
-county_agg_apps.app_value,
-ROUND(((county_agg_orig.count_orig::NUMERIC / (county_agg_orig.count_orig::NUMERIC + county_agg_apps.count_apps::NUMERIC))*100),2) AS orig_rate
+county_agg_apps.count_app AS count_apps,
+county_agg_apps.value_app,
+ROUND(((county_agg_orig.count_orig::NUMERIC / (county_agg_orig.count_orig::NUMERIC + county_agg_apps.count_app::NUMERIC))*100),2) AS orig_rate
 
 
 FROM rates
