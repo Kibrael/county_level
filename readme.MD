@@ -1,6 +1,6 @@
-# An investingation of how different counties experienced the boom, bust, and recovery from 2000 to 2014.
+## An investingation of how different counties experienced the boom, bust, and recovery from 2000 to 2014.
 
-### Analysis will be done on a CSV containing state and county geographic identifiers. For each geography the following data fields will be available:
+#### Analysis will be done on a CSV containing state and county geographic identifiers. For each geography the following data fields will be available:
 
 
 #### Method:
@@ -16,7 +16,7 @@ Single-family: property_type 1
 first-lien: lien status 1
 purchase or refinance: loan purpose 1 or 3
 
-### Data Handling:
+#### Data Handling:
 Rows with incorrectly formatted data were not used. This removed between 15 and 30 rows per year (predominantly from agency code 7).
 
 Rows with empty strings, or NA for income or loan amount were not used.
@@ -25,6 +25,6 @@ Rows with blank rate spread strings were omitted. FIXME: check to see if this is
 
 To calculate a multiple of loan amount to income, loan amounts were taken from conventional products and multiplied by 0.80.
 
-### Notes:
+#### Notes:
 Income Multiple - average loan amount has been divided by 0.80. All loans in the analysis were conventional loans.
 
