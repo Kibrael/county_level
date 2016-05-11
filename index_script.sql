@@ -1,0 +1,15 @@
+﻿CREATE INDEX county_agg00 ON hmdalar2000 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg01 ON hmdalar2001 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg02 ON hmdalar2002 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg03 ON hmdalar2003 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg04 ON hmdalar2004 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg05 ON hmdalar2005 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg06 ON hmdalar2006 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg07 ON hmdalar2007 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg08 ON hmdalar2008 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg09 ON hmdalar2009 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg10 ON hmdalar2010 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg11 ON hmdalar2011 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg22 ON hmdalar2012 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg13 ON hmdalar2013 (amount, income, state, county, year, loan_type, loan_purpose);
+CREATE INDEX county_agg14 ON hmdalar2014 (amount, income, state, county, year, loan_type, loan_purpose);
