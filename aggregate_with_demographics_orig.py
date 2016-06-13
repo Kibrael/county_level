@@ -72,18 +72,17 @@ for num in range(15):
 
 		GROUP BY CONCAT(state, county);
 		"""
-		print('test', source_table, race)
+
 		print("aggregating demographics for {table} and {demo}".format(table=source_table, demo=race_list[race])
-		#print("executing race aggregation on {table} for race {race}").format(table=source_table, race=race_list[race])
 		try: #read results of SQL query into data frame
 			SQL_demo_orig = SQL_demo_orig.format(source_table=source_table, race=race, race_name=race_list[race]) #format SQL query
-			df = pd.read_sql_query(SQL_demo_orig, conn) #load query results to dataframe
+			demo_df = pd.read_sql_query(SQL_demo_orig, conn) #load query results to dataframe
 			#print df.head()
 
 		except psycopg2.ProgrammingError as e: #catch empty dataframe errors, this may need to populate an emtpy dataframe
 			print("no results to fetch for table {table}",format(table=source_table))
-
-		base_counties_df = pd.concat([base_counties_df, df], axis=1, join='outer') #add currrent results to all race aggregate dataframe
+		base_counties_df = base_counties_df.merge(demo_df, on='fips', how='outer') #test alternate format of merge
+		#base_counties_df = pd.concat([base_counties_df, df], axis=1, join='outer') #add currrent results to all race aggregate dataframe
 		path = 'data/holding/originations/' #set path for CSV output
 		if not os.path.exists(path):
 			os.makedirs(path)

@@ -47,7 +47,7 @@ for num in range(15):
 	#print("SQL text:\n\n",SQL_base) #check query text
 	try: #read results of SQL query into data frame
 		base_counties_df = pd.read_sql_query(SQL_base, conn) #query LAR database and load county level aggregates to a dataframe
-		#print df.head()
+		print base_counties_df.head()
 	except psycopg2.ProgrammingError as e: #catch empty dataframe errors, this may need to populate an emtpy dataframe
 		print("no results to fetch for table {table}",format(table=source_table))
 
@@ -70,22 +70,17 @@ for num in range(15):
 
 		GROUP BY CONCAT(state, county);
 		"""
-		print('test', source_table, race)
-		print("aggregating demographics:", race_list[race])
-		#print("executing race aggregation on {table} for race {race}".format(table=source_table, race=race_list[race]))
+
+		print("\n\nexecuting race aggregation on {table} for race {race}\n".format(table=source_table, race=race_list[race]))
 		try: #read results of SQL query into data frame
 			SQL_demo_app = SQL_demo_app.format(source_table=source_table, race=race, race_name=race_list[race]) #format SQL query
-			df = pd.read_sql_query(SQL_demo_app, conn) #load query results to dataframe
-			#print df.head()
+			demo_df = pd.read_sql_query(SQL_demo_app, conn) #load query results to dataframe
+			print demo_df.head()
 
 		except psycopg2.ProgrammingError as e: #catch empty dataframe errors, this may need to populate an emtpy dataframe
 			print("no results to fetch for table {table}",format(table=source_table))
 
-
-		base_counties_df = pd.concat([base_counties_df, df], axis=1, join='outer') #add currrent results to all race aggregate dataframe
-		#base_counties_df2 = base_counties_df.merge(df, on='fips', how='outer') #test alternate format of merge
-		#print("all races:\n", all_race_aggs.head())
-
+		base_counties_df = base_counties_df.merge(demo_df, on='fips', how='outer') #test alternate format of merge
 		path = 'data/holding/applications/' #set path for CSV output
 		if not os.path.exists(path):
 			os.makedirs(path)
