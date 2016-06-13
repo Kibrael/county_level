@@ -1,4 +1,4 @@
-
+#currently unused 6/13/16
 import psycopg2
 
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
