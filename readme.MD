@@ -28,3 +28,6 @@ To calculate a multiple of loan amount to income, loan amounts were taken from c
 #### Notes:
 Income Multiple - average loan amount has been divided by 0.80. All loans in the analysis were conventional loans.
 
+#### File Descriptions:
+Load_agg.py: creates aggregate tables by year and county for applications and originations
+
