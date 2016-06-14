@@ -81,10 +81,10 @@ for num in range(15):
 			print("no results to fetch for table {table}",format(table=source_table))
 
 		base_counties_df = base_counties_df.merge(demo_df, on='fips', how='outer') #test alternate format of merge
-		path = 'data/holding/applications/' #set path for CSV output
-		if not os.path.exists(path):
-			os.makedirs(path)
-		base_counties_df.to_csv(path_or_buf=path+app_table+".csv", index=False)
+	path = 'data/holding/applications/' #set path for CSV output
+	if not os.path.exists(path):
+		os.makedirs(path)
+	base_counties_df.to_csv(path_or_buf=path+app_table+".csv", index=False)
 		#base_counties_df2.to_csv(path_or_buf=path+app_table+"2.csv", index=False)
 
 	#FIXME: create SQL table, copy CSV to table
