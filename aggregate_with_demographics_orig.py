@@ -88,7 +88,7 @@ for num in range(15):
 	if not os.path.exists(path):
 		os.makedirs(path)
 	base_counties_df.to_csv(path_or_buf=path+orig_table+".csv", index=False)
-
+	load_to_sql_csv = base_counties_df.to_csv(index=False)
 
 	#FIXME: create SQL table, copy CSV to table
 	#FIXME create origination tables: county level aggregates by year
