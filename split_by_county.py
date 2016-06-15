@@ -1,4 +1,4 @@
-import matplotlib
+
 import numpy as np
 import os
 import pandas as pd
@@ -32,6 +32,7 @@ for fips in list(set(fips_list)):
 	for num in range(15):
 		app_table = app_start + str(year+num)
 		orig_table = orig_start + str(year+num)
+		#FIXME move SQL to function
 		SQL = """SELECT
 			app.year
 			,app.state
@@ -94,14 +95,20 @@ for fips in list(set(fips_list)):
 		SQL = SQL.format(app_table=app_table, orig_table=orig_table, fips=fips)
 		df = pd.read_sql_query(SQL, conn) #load query results to dataframe
 
-		if first:
-			out_file = df #establish outfile with first year
+
+
+		if first == True and df.empty == False:
+			out_file = df #establish outfile with first year containing data
+			print("initial df for {year} and {fips}".format(year=str(year+num), fips=fips))
 			first = False
 		else:
-			try:
-				out_file = pd.concat([out_file, df]) #append a year to a county dataframe
-			except ValueError as e:
-				print('big trouble!! ', e)
+			#try:
+			out_file = pd.concat([out_file, df]) #append a year to a county dataframe
+			print("concat {year}".format(year=str(year+num)))
+			#except ValueError as e:
+			#	print('big trouble!! ', e)
+
+		#FIXME add demographic deltas here
 		#create income multiple for single year
 		out_file['income_multiple'] = (out_file.loan_average_app / 0.80) / out_file.income_average_app
 		#create deltas for pattern building
