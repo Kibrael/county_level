@@ -1,6 +1,7 @@
 #combines load_agg.py and get_demographic_aggregates.py to produce CSV and SQL tables of applications aggregated by county
 #creates annual tables with aggregate applications and originations by county
 #rows with data not parsing correctly were deleted ~30 per year from 2000-2006
+
 import os
 import pandas as pd
 import psycopg2
@@ -86,7 +87,8 @@ for num in range(15):
 		os.makedirs(path)
 	base_counties_df.to_csv(path_or_buf=path+app_table+".csv", index=False)
 		#base_counties_df2.to_csv(path_or_buf=path+app_table+"2.csv", index=False)
-
+	load_to_sql_csv = base_counties_df.to_csv(index=False)
+	#load this file to SQL
 	#FIXME: create SQL table, copy CSV to table
 
 
