@@ -32,7 +32,9 @@ def income_multiple(df=None, race_name=None, action='app', numerator=None, denom
 
 
 def percent_change(df=None, col_list=None):
-	pass
+	for col in col_list
+		out_col = col + '_delta'
+		df[out_col] = df[col].pct_change() * 100
 
 #select data for 2000-2014
 for fips in list(set(fips_list)):
@@ -63,11 +65,13 @@ for fips in list(set(fips_list)):
 		income_multiple(df=out_file, action='orig', numerator='loan_average_orig', denominator='income_average_orig')
 
 		#create deltas for pattern building
-		out_file['loan_avg_app_delta'] = out_file.loan_average_app.pct_change()*100
-		out_file['income_average_app_delta'] = out_file.income_average_app.pct_change() *100
-		out_file['count_app_delta'] = out_file.count_app.pct_change() *100
-		out_file['value_app_delta'] = out_file.value_app.pct_change() * 100
-		out_file['income_mult_delta'] = out_file.income_multiple_app.pct_change()*100
+		delta_cols = ['loan_avg_app', 'income_average_app', 'count_app', 'value_app', 'income_mult']
+		percent_change(df=out_file, col_list=delta_cols)
+		#out_file['loan_avg_app_delta'] = out_file.loan_average_app.pct_change()*100
+		#out_file['income_average_app_delta'] = out_file.income_average_app.pct_change() *100
+		#out_file['count_app_delta'] = out_file.count_app.pct_change() *100
+		#out_file['value_app_delta'] = out_file.value_app.pct_change() * 100
+		#out_file['income_mult_delta'] = out_file.income_multiple_app.pct_change()*100
 		for race in race_dict.keys():
 			numerator = race_dict[race] + '_loan_average_'
 			denominator = race_dict[race] + '_income_average_'
