@@ -248,3 +248,20 @@ def get_CBSA_df(CBSA_file, seperator):
 	cbsa_df.county = cbsa_df.county.map(lambda x: str(x).zfill(5)) #left pad with 0's to make valid FIPS codes
 	return cbsa_df
 
+def income_multiple(df=None, race_name=None, action='app', numerator=None, denominator=1):
+	"""calculates the income multiple with the assumption that LTV is 80% at origination"""
+	if race_name is None:
+		col_name = 'income_multiple_' + action
+	else:
+		col_name = race_name + '_' + 'income_multiple_' + action
+	df[col_name] = (df[numerator] / 0.80) / df[denominator]
+
+
+def percent_change(df=None, col_list=None):
+	for col in col_list:
+		out_col = col + '_delta'
+		try:
+			df[out_col] = df[col].pct_change() * 100
+		except:
+			print("unable to compute all values for {column}".format(column=col))
+

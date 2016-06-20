@@ -17,19 +17,19 @@ app_data_path = "/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applicati
 orig_data_path = '/Users/roellk/Desktop/HMDA/data_analysis/data/holding/originations/'
 
 for source_table in source_tables:
-	#counties_apps_df = agg_df(source_table, 'app', conn) #set initial application dataframe for 1 year of aggregate county data
+	counties_apps_df = agg_df(source_table, 'app', conn) #set initial application dataframe for 1 year of aggregate county data
 	counties_origs_df = agg_df(source_table, 'orig', conn) #set initial origination dataframe for 1 year of aggregate county data
 
 	for race in race_list.keys(): #iterate over race codes to aggregate county HMDA activity by race
-	 	#demo_app_df = race_agg_df(source_table, 'app', race, race_list[race], conn) #create a dataframe of county level aggregates for a race
+	 	demo_app_df = race_agg_df(source_table, 'app', race, race_list[race], conn) #create a dataframe of county level aggregates for a race
 	 	demo_orig_df = race_agg_df(source_table, 'orig', race, race_list[race], conn)
 
-	 	#counties_apps_df = counties_apps_df.merge(demo_app_df, on='fips', how='outer') #merge race dataframes on fips column
+	 	counties_apps_df = counties_apps_df.merge(demo_app_df, on='fips', how='outer') #merge race dataframes on fips column
 	 	counties_origs_df = counties_origs_df.merge(demo_orig_df, on='fips', how='outer') #merge race dataframes on fips column
 
- 	#check_path(app_path) #check if file path exists, if not then create it
+ 	check_path(app_path) #check if file path exists, if not then create it
  	check_path(orig_path) #check if file path exists, if not then create it
-	#counties_apps_df.to_csv(path_or_buf=app_path+source_table+"_applications.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
+	counties_apps_df.to_csv(path_or_buf=app_path+source_table+"_applications.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
 	counties_origs_df.to_csv(path_or_buf=orig_path+source_table+"_originations.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
  	# 	load_to_sql_csv = base_counties_df.to_csv(index=False) #load this file to SQL
  	# 	#FIXME: create SQL table, copy CSV to table
