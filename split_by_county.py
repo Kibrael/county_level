@@ -1,19 +1,10 @@
-
 import numpy as np
 import os
 import pandas as pd
 import psycopg2
 
-from agg_funcs import county_years_SQL
-from agg_funcs import get_CBSA_df
-from agg_funcs import race_dict
-
-conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
-cur = conn.cursor() #establish SQL cursor object
-
-#load tract to CBSA file to get valid counties
-cbsa_df = get_CBSA_df('tract_to_cbsa_2010.csv', '|') #loads CBSA data and left pads 0's
-fips_list = set(cbsa_df.county.ravel()) #remove duplicates
+from lib.agg_funcs import get_CBSA_df, race_dict, income_multiple, percent_change
+from lib.sql_text import county_years_SQL
 
 ##########################
 #selects application and origination information for single family homes for a single county
@@ -22,22 +13,12 @@ fips_list = set(cbsa_df.county.ravel()) #remove duplicates
 #this process takes ~15 minutes to run
 ##########################
 
-def income_multiple(df=None, race_name=None, action='app', numerator=None, denominator=1):
-	"""calculates the income multiple with the assumption that LTV is 80% at origination"""
-	if race_name is None:
-		col_name = 'income_multiple_' + action
-	else:
-		col_name = race_name + '_' + 'income_multiple_' + action
-	df[col_name] = (df[numerator] / 0.80) / df[denominator]
+conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
+cur = conn.cursor() #establish SQL cursor object
 
-
-def percent_change(df=None, col_list=None):
-	for col in col_list:
-		out_col = col + '_delta'
-		try:
-			df[out_col] = df[col].pct_change() * 100
-		except:
-			print("unable to compute all values for {column}".format(column=col))
+#load tract to CBSA file to get valid counties
+cbsa_df = get_CBSA_df('tract_to_cbsa_2010.csv', '|') #loads CBSA data and left pads 0's
+fips_list = set(cbsa_df.county.ravel()) #remove duplicates
 
 #select data for 2000-2014
 for fips in list(set(fips_list)):
@@ -49,6 +30,7 @@ for fips in list(set(fips_list)):
 	app_start = "county_apps_"
 	orig_start = "county_orig_"
 
+	#FIXME match this range to the LAR table list? range(len(source_tables))
 	for num in range(15):
 		app_table = app_start + str(year+num)
 		orig_table = orig_start + str(year+num)
@@ -67,22 +49,26 @@ for fips in list(set(fips_list)):
 		income_multiple(df=out_file, action='app', numerator='loan_average_app', denominator='income_average_app')
 		income_multiple(df=out_file, action='orig', numerator='loan_average_orig', denominator='income_average_orig')
 
-		#create deltas for pattern building
+		#set column names to pass to percent_change to create year over year change values
 		app_delta_cols = ['loan_average_app', 'income_average_app', 'count_app', 'value_app', 'income_multiple_app']
 		orig_delta_cols = ['loan_average_orig', 'income_average_orig', 'count_orig', 'value_orig', 'income_multiple_orig']
+
+		#create deltas for pattern building
 		percent_change(df=out_file, col_list=app_delta_cols)
 		percent_change(df=out_file, col_list=orig_delta_cols)
 
 		for race in race_dict.keys():
 			numerator_text = race_dict[race] + '_loan_average_'
 			denominator_text = race_dict[race] + '_income_average_'
+
 			income_multiple(df=out_file, race_name=race_dict[race], action='app', numerator=numerator_text + 'app', denominator=denominator_text+'app')
 			income_multiple(df=out_file, race_name=race_dict[race], action='orig', numerator=numerator_text + 'orig', denominator=denominator_text+'orig')
 
-			race_app_delta_cols = [race_dict[race] + '_' + col for col in app_delta_cols]
-			race_orig_delta_cols = [race_dict[race] + '_' + col for col in orig_delta_cols]
-			percent_change(df=out_file, col_list=race_app_delta_cols)
-			percent_change(df=out_file, col_list=race_orig_delta_cols)
+			race_app_delta_cols = [race_dict[race] + '_' + col for col in app_delta_cols] #set column name list for race percent change columns
+			race_orig_delta_cols = [race_dict[race] + '_' + col for col in orig_delta_cols] #set column name list for race percent change columns
+
+			percent_change(df=out_file, col_list=race_app_delta_cols)#add percent change columns for applications
+			percent_change(df=out_file, col_list=race_orig_delta_cols)# add percent change columns for originations
 
 	if not os.path.exists(path): #check to see if path for a county exists
 			os.makedirs(path) #create path if it is not present

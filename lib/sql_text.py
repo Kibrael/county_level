@@ -1,9 +1,73 @@
 
-def format_load_SQL(table, data):
-	SQL = """COPY {table} FROM '{path}' DELIMITER ',' CSV HEADER; COMMIT;"""
-	return SQL.format(table=table, path=data)
+def agg_SQL(source_table, action):
+	#FIXME change action to a passed format variable
+	"""returns SQL_base with source table formatted into the query text
+	    Used to aggregate LAR data to the county level for a single year LAR table
+	    action is used to determine if applications or originations are selected """
+
+	if action == 'app':
+		action_taken = "action != '1' " #all other action codes
+	elif action == 'orig':
+		action_taken = "action = '1' "#origination action code
+	else:
+		print('invalid action selection')
+		#FIXME raise valueerror?
+
+	SQL_base ="""SELECT
+	year
+	,state
+	,county
+	,CONCAT(state, county) AS fips
+	,ROUND(AVG(amount::INTEGER),2) AS loan_average_app
+	,ROUND(AVG(income::INTEGER),2) AS income_average_app
+	,COUNT(concat(agency, rid)) AS count_app
+	,SUM(amount::INTEGER) AS value_app
+	FROM {source_table}
+	WHERE
+	          loan_type = '1'
+	AND {action_taken}
+	AND loan_purpose in ('1', '3')
+	AND amount not like '%NA%'
+	AND income not like '%NA%'
+	AND amount not like '%na%'
+	AND income not like '%na%'
+	GROUP BY year, state, county;"""
+
+	return SQL_base.format(source_table=source_table, action_taken=action_taken)
+
+def agg_demo_SQL(source_table, race_code, race_name, action):
+	"""returns SQL_base with source table, race code and race name formatted into the query text
+	    Used to aggregate LAR data to the county level for a single year LAR table for the selected race"""
+	if action == 'app':
+		action_taken = "action != '1' "
+	elif action == 'orig':
+		action_takne = "action = '1' "
+	else:
+		print("invalid action")
+		#FIXME raise valueError
+
+	SQL_base = """SELECT
+		 CONCAT(state, county) AS fips
+		,ROUND(AVG(amount::INTEGER),2) AS {race_name}_loan_average_app
+		,ROUND(AVG(income::INTEGER),2) AS {race_name}_income_average_app
+		,COUNT(concat(agency, rid)) AS {race_name}_count_app
+		,SUM(amount::INTEGER) AS {race_name}_value_app
+		FROM {source_table}
+		WHERE
+		          race = '{race_code}'
+		AND {action_taken}
+		AND loan_type = '1'
+		AND loan_purpose in ('1', '3')
+		AND amount not like '%NA%'
+		AND income not like '%NA%'
+		AND amount not like '%na%'
+		AND income not like '%na%'
+		GROUP BY CONCAT(state, county);"""
+
+	return SQL_base.format(source_table=source_table, race_code=race_code, race_name=race_name, action_taken=action_taken)
 
 def create_aggregate_table_SQL(table, action):
+	"""Returns a formatted SQL statement to create a table holding a single year's aggregated application or origination data for one county"""
 	SQL = """CREATE TABLE {create_table} (
 		year real,
 		state varchar(2),
@@ -49,6 +113,7 @@ def create_aggregate_table_SQL(table, action):
 	return SQL.format(create_table=table, action=action)
 
 def county_years_SQL(app_table, orig_table, fips):
+	"""Returns a SQL select statement that combines columns from tables containing application and origination data for a specified county"""
 	SQL = """SELECT
 		app.year
 		,app.state
@@ -109,74 +174,14 @@ def county_years_SQL(app_table, orig_table, fips):
 	return SQL.format(app_table=app_table, orig_table=orig_table, fips=fips)
 
 
-def agg_SQL(source_table, action):
-	#FIXME change action to a passed format variable
-	"""returns SQL_base with source table formatted into the query text
-		Used to aggregate LAR data to the county level for a single year LAR table
-		action is used to determine if applications or originations are selected """
-
-	if action == 'app':
-		action_taken = 'action != '1'' #all other action codes
-	elif action == 'orig':
-		action_taken = 'action = '1'' #origination action code
-	else:
-		print('invalid action selection')
-		#FIXME raise valueerror?
-
-	SQL_base ="""SELECT
-	year
-	,state
-	,county
-	,CONCAT(state, county) AS fips
-	,ROUND(AVG(amount::INTEGER),2) AS loan_average_app
-	,ROUND(AVG(income::INTEGER),2) AS income_average_app
-	,COUNT(concat(agency, rid)) AS count_app
-	,SUM(amount::INTEGER) AS value_app
-	FROM {source_table}
-	WHERE
-	          loan_type = '1'
-	AND {action_taken}
-	AND loan_purpose in ('1', '3')
-	AND amount not like '%NA%'
-	AND income not like '%NA%'
-	AND amount not like '%na%'
-	AND income not like '%na%'
-	GROUP BY year, state, county;"""
-
-	return SQL_base.format(source_table=source_table, action_taken=action_taken)
-
-def agg_demo_SQL(source_table, race_code, race_name, action):
-	"""returns SQL_base with source table, race code and race name formatted into the query text
-		Used to aggregate LAR data to the county level for a single year LAR table for the selected race"""
-	if action == 'app':
-		action_taken = 'action != '1''
-	elif action == 'orig':
-		action_takne = 'action = '1''
-	else:
-		print("invalid action")
-		#FIXME raise valueError
-
-	SQL_base = """SELECT
-		 CONCAT(state, county) AS fips
-		,ROUND(AVG(amount::INTEGER),2) AS {race_name}_loan_average_app
-		,ROUND(AVG(income::INTEGER),2) AS {race_name}_income_average_app
-		,COUNT(concat(agency, rid)) AS {race_name}_count_app
-		,SUM(amount::INTEGER) AS {race_name}_value_app
-		FROM {source_table}
-		WHERE
-		          race = '{race_code}'
-		AND {action_taken}
-		AND loan_type = '1'
-		AND loan_purpose in ('1', '3')
-		AND amount not like '%NA%'
-		AND income not like '%NA%'
-		AND amount not like '%na%'
-		AND income not like '%na%'
-		GROUP BY CONCAT(state, county);"""
-
-	return SQL_base.format(source_table=source_table, race_code=race_code, race_name=race_name, action_taken=action_taken)
 
 def drop_table(table):
-	"""returns SQL text formatted to drop the selected table if it exists"""
+	"""Returns a SQL statement that drops the passed table if it exists"""
 	drop_SQL = """DROP TABLE IF EXISTS {drop_table}; COMMIT;"""
 	return drop_SQL.format(drop_table=table)
+
+def format_load_SQL(table, data):
+	"""Returns a formatted SQL statement to load a CSV file into the specified table """
+	SQL = """COPY {table} FROM '{path}' DELIMITER ',' CSV HEADER; COMMIT;"""
+	return SQL.format(table=table, path=data)
+

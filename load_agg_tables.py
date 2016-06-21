@@ -3,16 +3,18 @@ import os
 import pandas as pd
 import psycopg2
 
-from agg_funcs import create_aggregate_table_SQL
-from agg_funcs import format_load_SQL
-from agg_funcs import drop_table
+from lib.agg_funcs import app_data_path, orig_data_path
+from lib.sql_text import create_aggregate_table_SQL, format_load_SQL, drop_table
+
+##########################
+#Drops, creates, and loads county-level aggregate data for HMDA years 2000 to 2014
+#
+##########################
 
 #establish DB connection
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
 cur = conn.cursor() #establish psycopg2 cursor object
 
-app_data_path = "/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applications/" #psycopg2 requires an absolute path from which to copy files
-orig_data_path = '/Users/roellk/Desktop/HMDA/data_analysis/data/holding/originations/'
 year = 2000 #set start year for table naming and CSV file reading
 app_start = 'county_apps_' #set start point for application table and data file names
 orig_start = 'county_orig_' #set start point for origination table and data file names
@@ -37,8 +39,7 @@ for num in range(15): #loop over 15 years to create tables and load county aggre
 	cur.execute(create_orig_table_SQL,)
 	print("creating {table}".format(table=orig_table))
 
-
-
+	#format SQL statements
 	load_app_SQL = format_load_SQL(app_table, app_data)
 	load_orig_SQL = format_load_SQL(orig_table, orig_data)
 
@@ -47,4 +48,5 @@ for num in range(15): #loop over 15 years to create tables and load county aggre
 	print("loading data into {app_table}".format(app_table=app_table))
 	cur.execute(load_orig_SQL,)
 	print("loading data into {orig_table}".format(orig_table=orig_table))
+
 print('finished')
