@@ -5,6 +5,7 @@ import pandas as pd
 
 race_list = {'1': 'native', '2': 'asian', '3': 'black', '4': 'hawaiian', '5': 'white', '6': 'not_provided', '7': 'not_applicable', '8': 'no_co_app'}
 race_dict = {'1': 'native', '2': 'asian', '3': 'black', '4': 'hawaiian', '5': 'white'}
+
 def agg_SQL(source_table, action):
 	#FIXME change action to a passed format variable
 	"""returns SQL_base with source table formatted into the query text
@@ -89,7 +90,7 @@ def agg_demo_SQL(source_table, race_code, race_name, action):
 			FROM {source_table}
 			WHERE
 			          race = '{race_code}'
-			AND action != '1'
+			AND action = '1'
 			AND loan_type = '1'
 			AND loan_purpose in ('1', '3')
 			AND amount not like '%NA%'

@@ -38,7 +38,7 @@ for num in range(15): #loop over 15 years to create tables and load county aggre
 	print("creating {table}".format(table=orig_table))
 
 
-	#format data copy SQL statements
+
 	load_app_SQL = format_load_SQL(app_table, app_data)
 	load_orig_SQL = format_load_SQL(orig_table, orig_data)
 
