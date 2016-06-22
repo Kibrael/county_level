@@ -1,4 +1,7 @@
-
+##############################
+#06/16/2016 K. David Roell CFPB
+#Contains functions that format SQL statements for use in aggregating HMDA LAR data
+##############################
 def agg_SQL(source_table, action):
 	#FIXME change action to a passed format variable
 	"""returns SQL_base with source table formatted into the query text

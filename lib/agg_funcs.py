@@ -1,4 +1,9 @@
 #create application tables: county level aggregates by year
+############################
+#K. David Roell CFPB
+#Contains variables and functions to manipulate Pandas dataframes and other files
+############################
+
 import os
 import psycopg2
 import pandas as pd
@@ -11,6 +16,11 @@ race_dict = {'1': 'native', '2': 'asian', '3': 'black', '4': 'hawaiian', '5': 'w
 #HMDA LAR tables from which to draw data for aggregation
 source_tables = ['hmdalar2000', 'hmdalar2001', 'hmdalar2002', 'hmdalar2003', 'hmdalar2004', 'hmdalar2005', 'hmdalar2006',
 		'hmdalar2007', 'hmdalar2008', 'hmdalar2009', 'hmdalar2010', 'hmdalar2011', 'hmdalar2012', 'hmdalar2013', 'hmdalar2014']
+
+#set column names to pass to percent_change to create year over year change values
+app_delta_cols = ['loan_average_app', 'income_average_app', 'count_app', 'value_app', 'income_multiple_app']
+orig_delta_cols = ['loan_average_orig', 'income_average_orig', 'count_orig', 'value_orig', 'income_multiple_orig']
+
 
 #data paths for CSVs containing aggregate data for all counties for each year
 app_data_path = "/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applications/" #psycopg2 requires an absolute path from which to copy files

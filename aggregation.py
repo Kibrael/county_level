@@ -1,3 +1,11 @@
+################################
+#06/16/2016 K. David Roell CFPB
+#Aggregates HMDA LAR data to the county level for each source table in the source_tables list FIXME: is this clear?
+#Writes the aggregated data to a CSV at the specified path for applicaitons or originations
+#FIXME Creates SQL tables to hold annual data for applications and originations
+#FIXME Writes data from dataframes (CSV?) to annual county-level aggregate tables for applications or originations
+################################
+
 import os
 import pandas as pd
 import psycopg2
@@ -5,12 +13,7 @@ import psycopg2
 from lib.agg_funcs import agg_df, check_path, race_agg_df, race_list, app_data_path, orig_data_path, source_tables
 from lib.sql_text import *
 
-################################
-#Aggregates HMDA LAR data to the county level for each source table in the source_tables list
-#Writes the aggregated data to a CSV at the specified path for applicaitons or originations
-#FIXME Creates SQL tables to hold annual data for applications and originations
-#FIXME Writes data from dataframes (CSV?) to annual county-level aggregate tables for applications or originations
-################################
+
 
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
 cur = conn.cursor()#instantiate cursor object to use in SQL queries
@@ -18,7 +21,7 @@ cur = conn.cursor()#instantiate cursor object to use in SQL queries
 
 app_path = 'data/holding/applications/' #set path for CSV output
 orig_path = 'data/holding/originations/'
-count = 2000
+hmda_year = 2000
 
 for source_table in source_tables:
 
@@ -34,14 +37,13 @@ for source_table in source_tables:
 
  	check_path(app_path) #check if file path exists, if not then create it
  	check_path(orig_path) #check if file path exists, if not then create it
- 	print('writing aggregate files for {year}'.format(year=str(count)))
+ 	print('writing aggregate files for {year}'.format(year=str(hmda_year)))
 	counties_apps_df.to_csv(path_or_buf=app_path+source_table+"_applications.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
 	counties_origs_df.to_csv(path_or_buf=orig_path+source_table+"_originations.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
-#/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applications
-#/Users/roellk/Desktop/HMDA/data_analysis/data/holding/originations/hmdalar2000_applications.csv
+
  	#set table names for data load
- 	app_table =  'county_apps_' + str(count)#county_apps_yyyy
- 	orig_table =  'county_orig_' + str(count) #county_orig_yyyy
+ 	app_table =  'county_apps_' + str(hmda_year)#county_apps_yyyy
+ 	orig_table =  'county_orig_' + str(hmda_year) #county_orig_yyyy
 
  	#drop old tables annual aggregate tables for originations and applications
  	print('dropping old aggregate tables and creating new for year {year}'.format(year=count))
@@ -59,8 +61,8 @@ for source_table in source_tables:
  	print("creating {table}".format(table=orig_table))
 
  	#set data to load
- 	app_data = app_data_path + 'hmdalar' + str(count) + '_applications.csv' #set application aggregate data file
- 	orig_data = orig_data_path + 'hmdalar' + str(count) + '_originations.csv' #set origination aggregate data file
+ 	app_data = app_data_path + 'hmdalar' + str(hmda_year) + '_applications.csv' #set application aggregate data file
+ 	orig_data = orig_data_path + 'hmdalar' + str(hmda_year) + '_originations.csv' #set origination aggregate data file
 
  	#format SQL statements to load data to annual county-level aggregate tables
  	load_app_SQL = format_load_SQL(app_table, app_data)
@@ -71,7 +73,7 @@ for source_table in source_tables:
  	print("loading data into {app_table}".format(app_table=app_table))
  	cur.execute(load_orig_SQL,)
  	print("loading data into {orig_table}".format(orig_table=orig_table))
- 	count += 1
+ 	hmda_year += 1
  	# 	#FIXME: create SQL table, copy CSV to table
 
 

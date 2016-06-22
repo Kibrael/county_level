@@ -1,4 +1,10 @@
-#prototype code to clean pandas dataframes from CSVs and load county aggregate tables to postgres
+##########################
+#06/16/2016 K. David Roell CFPB
+#Drops, creates, and loads county-level aggregate data for HMDA years 2000 to 2014
+#
+##########################
+
+
 import os
 import pandas as pd
 import psycopg2
@@ -6,10 +12,7 @@ import psycopg2
 from lib.agg_funcs import app_data_path, orig_data_path
 from lib.sql_text import create_aggregate_table_SQL, format_load_SQL, drop_table
 
-##########################
-#Drops, creates, and loads county-level aggregate data for HMDA years 2000 to 2014
-#
-##########################
+
 
 #establish DB connection
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
@@ -19,6 +22,7 @@ year = 2000 #set start year for table naming and CSV file reading
 app_start = 'county_apps_' #set start point for application table and data file names
 orig_start = 'county_orig_' #set start point for origination table and data file names
 
+#FIXME match this range(15) to the tables?
 for num in range(15): #loop over 15 years to create tables and load county aggregate data
 	app_data = app_data_path + 'hmdalar' + str(year + num) + '_applications.csv' #set application aggregate data file
 	orig_data = orig_data_path + 'hmdalar' + str(year + num) + '_originations.csv' #set origination data file source
