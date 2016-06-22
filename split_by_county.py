@@ -1,17 +1,20 @@
-import numpy as np
-import os
-import pandas as pd
-import psycopg2
-
-from lib.agg_funcs import get_CBSA_df, race_dict, income_multiple, percent_change
-from lib.sql_text import county_years_SQL
 
 ##########################
+#06/16/2016 K. David Roell CFPB
 #selects application and origination information for single family homes for a single county
 #loads to data frame and writes to csv in state/county directory structure
 #writes a CSV to the base directory with all counties and all states
 #this process takes ~15 minutes to run
 ##########################
+
+import numpy as np
+import os
+import pandas as pd
+import psycopg2
+
+from lib.agg_funcs import get_CBSA_df, race_dict, income_multiple, percent_change, source_tables, app_delta_cols, orig_delta_cols, check_path
+from lib.sql_text import county_years_SQL
+
 
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
 cur = conn.cursor() #establish SQL cursor object
@@ -31,7 +34,7 @@ for fips in list(set(fips_list)):
 	orig_start = "county_orig_"
 
 	#FIXME match this range to the LAR table list? range(len(source_tables))
-	for num in range(15):
+	for num in range(len(source_tables)):
 		app_table = app_start + str(year+num)
 		orig_table = orig_start + str(year+num)
 		SQL = county_years_SQL(app_table, orig_table, fips)
@@ -48,10 +51,6 @@ for fips in list(set(fips_list)):
 		#create income multiples for entire county
 		income_multiple(df=out_file, action='app', numerator='loan_average_app', denominator='income_average_app')
 		income_multiple(df=out_file, action='orig', numerator='loan_average_orig', denominator='income_average_orig')
-
-		#set column names to pass to percent_change to create year over year change values
-		app_delta_cols = ['loan_average_app', 'income_average_app', 'count_app', 'value_app', 'income_multiple_app']
-		orig_delta_cols = ['loan_average_orig', 'income_average_orig', 'count_orig', 'value_orig', 'income_multiple_orig']
 
 		#create deltas for pattern building
 		percent_change(df=out_file, col_list=app_delta_cols)
@@ -70,8 +69,7 @@ for fips in list(set(fips_list)):
 			percent_change(df=out_file, col_list=race_app_delta_cols)#add percent change columns for applications
 			percent_change(df=out_file, col_list=race_orig_delta_cols)# add percent change columns for originations
 
-	if not os.path.exists(path): #check to see if path for a county exists
-			os.makedirs(path) #create path if it is not present
+	check_path(path)
 	print('writing data for {path}'.format(path=path))
 	out_file.to_csv(path+"data.csv", index=None) #write dataframe to CSV for one county in state/county/file directory structure
 
