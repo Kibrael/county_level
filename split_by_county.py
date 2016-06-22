@@ -1,16 +1,10 @@
-
 import numpy as np
 import os
 import pandas as pd
 import psycopg2
 
-conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
-cur = conn.cursor() #establish SQL cursor object
-
-#load tract to CBSA file to get valid counties
-cbsa_df = pd.read_csv('tract_to_CBSA_2010.csv', sep='|')
-cbsa_df.county = cbsa_df.county.map(lambda x: str(x).zfill(5)) #left pad with 0's to make valid FIPS codes
-fips_list = set(cbsa_df.county.ravel()) #remove duplicates
+from lib.agg_funcs import get_CBSA_df, race_dict, income_multiple, percent_change
+from lib.sql_text import county_years_SQL
 
 ##########################
 #selects application and origination information for single family homes for a single county
@@ -18,6 +12,13 @@ fips_list = set(cbsa_df.county.ravel()) #remove duplicates
 #writes a CSV to the base directory with all counties and all states
 #this process takes ~15 minutes to run
 ##########################
+
+conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
+cur = conn.cursor() #establish SQL cursor object
+
+#load tract to CBSA file to get valid counties
+cbsa_df = get_CBSA_df('tract_to_cbsa_2010.csv', '|') #loads CBSA data and left pads 0's
+fips_list = set(cbsa_df.county.ravel()) #remove duplicates
 
 #select data for 2000-2014
 for fips in list(set(fips_list)):
@@ -29,94 +30,45 @@ for fips in list(set(fips_list)):
 	app_start = "county_apps_"
 	orig_start = "county_orig_"
 
+	#FIXME match this range to the LAR table list? range(len(source_tables))
 	for num in range(15):
 		app_table = app_start + str(year+num)
 		orig_table = orig_start + str(year+num)
-		#FIXME move SQL to function
-		SQL = """SELECT
-			app.year
-			,app.state
-			,app.county
-			,app.fips
-			,loan_average_orig
-			,income_average_orig
-			,count_orig
-			,value_orig
-			,native_loan_average_orig
-			,native_income_average_orig
-			,native_count_orig
-			,native_value_orig
-			,black_loan_average_orig
-			,black_income_average_orig
-			,black_count_orig
-			,black_value_orig
-			,asian_loan_average_orig
-			,asian_income_average_orig
-			,asian_count_orig
-			,asian_value_orig
-			,white_loan_average_orig
-			,white_income_average_orig
-			,white_count_orig
-			,white_value_orig
-			,hawaiian_loan_average_orig
-			,hawaiian_income_average_orig
-			,hawaiian_count_orig
-			,hawaiian_value_orig
-			,loan_average_app
-			,income_average_app
-			,count_app
-			,value_app
-			,native_loan_average_app
-			,native_income_average_app
-			,native_count_app
-			,native_value_app
-			,black_loan_average_app
-			,black_income_average_app
-			,black_count_app
-			,black_value_app
-			,asian_loan_average_app
-			,asian_income_average_app
-			,asian_count_app
-			,asian_value_app
-			,white_loan_average_app
-			,white_income_average_app
-			,white_count_app
-			,white_value_app
-			,hawaiian_loan_average_app
-			,hawaiian_income_average_app
-			,hawaiian_count_app
-			,hawaiian_value_app
-			FROM {app_table} AS app
-			FULL OUTER JOIN {orig_table} AS orig
-			ON app.fips = orig.fips
-			WHERE app.fips = cast({fips} AS VARCHAR(5))
-
-			"""
-		SQL = SQL.format(app_table=app_table, orig_table=orig_table, fips=fips)
+		SQL = county_years_SQL(app_table, orig_table, fips)
 		df = pd.read_sql_query(SQL, conn) #load query results to dataframe
-
-
 
 		if first == True and df.empty == False:
 			out_file = df #establish outfile with first year containing data
 			print("initial df for {year} and {fips}".format(year=str(year+num), fips=fips))
 			first = False
 		else:
-			#try:
 			out_file = pd.concat([out_file, df]) #append a year to a county dataframe
 			print("concat {year}".format(year=str(year+num)))
-			#except ValueError as e:
-			#	print('big trouble!! ', e)
 
-		#FIXME add demographic deltas here
-		#create income multiple for single year
-		out_file['income_multiple'] = (out_file.loan_average_app / 0.80) / out_file.income_average_app
+		#create income multiples for entire county
+		income_multiple(df=out_file, action='app', numerator='loan_average_app', denominator='income_average_app')
+		income_multiple(df=out_file, action='orig', numerator='loan_average_orig', denominator='income_average_orig')
+
+		#set column names to pass to percent_change to create year over year change values
+		app_delta_cols = ['loan_average_app', 'income_average_app', 'count_app', 'value_app', 'income_multiple_app']
+		orig_delta_cols = ['loan_average_orig', 'income_average_orig', 'count_orig', 'value_orig', 'income_multiple_orig']
+
 		#create deltas for pattern building
-		out_file['loan_avg_app_delta'] = out_file.loan_average_app.pct_change()*100
-		out_file['income_average_app_delta'] = out_file.income_average_app.pct_change() *100
-		out_file['count_app_delta'] = out_file.count_app.pct_change() *100
-		out_file['value_app_delta'] = out_file.value_app.pct_change()
-		out_file['income_mult_delta'] = out_file.income_multiple.pct_change()*100
+		percent_change(df=out_file, col_list=app_delta_cols)
+		percent_change(df=out_file, col_list=orig_delta_cols)
+
+		for race in race_dict.keys():
+			numerator_text = race_dict[race] + '_loan_average_'
+			denominator_text = race_dict[race] + '_income_average_'
+
+			income_multiple(df=out_file, race_name=race_dict[race], action='app', numerator=numerator_text + 'app', denominator=denominator_text+'app')
+			income_multiple(df=out_file, race_name=race_dict[race], action='orig', numerator=numerator_text + 'orig', denominator=denominator_text+'orig')
+
+			race_app_delta_cols = [race_dict[race] + '_' + col for col in app_delta_cols] #set column name list for race percent change columns
+			race_orig_delta_cols = [race_dict[race] + '_' + col for col in orig_delta_cols] #set column name list for race percent change columns
+
+			percent_change(df=out_file, col_list=race_app_delta_cols)#add percent change columns for applications
+			percent_change(df=out_file, col_list=race_orig_delta_cols)# add percent change columns for originations
 
 	if not os.path.exists(path): #check to see if path for a county exists
 			os.makedirs(path) #create path if it is not present

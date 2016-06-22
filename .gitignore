@@ -1,2 +1,4 @@
 data/
 unused_files/
+
+*.pyc
