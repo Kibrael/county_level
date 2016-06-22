@@ -13,13 +13,13 @@
 [sql_text.py](https://github.com/Kibrael/county_level/blob/master/lib/sql_text.py): Returns SQL statements formatted with passed variables.
 
 #### Dependancies
-[PostgreSQL](https://www.postgresql.org) with [HMDA LAR data](https://catalog.archives.gov/search?q=*:*&f.parentNaId=2456161&f.level=fileUnit&sort=naIdSort%20asc) loaded,
-For code to load HMDA data please go to [this repository](https://github.com/Kibrael/HMDA_load)
-[Psycopg2](http://www.psycopg.org/psycopg/)
-[Python 3.5](https://www.python.org) or higher
-[Pandas](http://pandas.pydata.org)
-[Jupyter](http://jupyter.org) (for notebooks)
-[Bokeh](http://bokeh.pydata.org/en/latest/) (for visualization)
+[PostgreSQL](https://www.postgresql.org) with [HMDA LAR data](https://catalog.archives.gov/search?q=*:*&f.parentNaId=2456161&f.level=fileUnit&sort=naIdSort%20asc) loaded  
+For code to load HMDA data please go to [this repository](https://github.com/Kibrael/HMDA_load)  
+[Psycopg2](http://www.psycopg.org/psycopg/)  
+[Python 3.5](https://www.python.org) or higher  
+[Pandas](http://pandas.pydata.org)  
+[Jupyter](http://jupyter.org) (for notebooks)  
+[Bokeh](http://bokeh.pydata.org/en/latest/) (for visualization)  
 
 
 Running the [aggregation.py]((https://github.com/Kibrael/county_level/blob/master/aggregation.py)) script will produce SQL tables and CSVs with the following fields:
