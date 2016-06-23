@@ -2,6 +2,44 @@
 #06/16/2016 K. David Roell CFPB
 #Contains functions that format SQL statements for use in aggregating HMDA LAR data
 ##############################
+def add_column(table='county_apps_2000', column='new_col', data_type='varchar(10)'):
+	"""formats a SQL statement to add a new column to an existing SQL table"""
+
+	SQL = """ALTER TABLE {table} ADD COLUMN {column} {data_type}"""
+	return SQL.format(table=table, column=column, data_type=data_type)
+
+
+def agg_new_col(source_table='hmdalar2000', pg_func='sum', column='income', action_taken="action != '1'"):
+	"""Returns a SQL statement that aggregates one column of data to the county level for a single year of HMDA data
+	the default values return SQL for calculating the sum of incomes by county"""
+
+	metric_list = ['sum', 'count', 'stddev_samp', 'stddev_pop', 'max', 'min'] #list of implemented PostgreSQL aggregate functions
+
+	if pg_func in metric_list:
+		metric_text = pg_func + "(" + column + "::real)"
+		SQL = """SELECT
+			year,
+			state,
+			county,
+			concat(state,county) AS fips,
+			{metric_text}
+			FROM {source_table}
+			WHERE
+			          loan_type = '1'
+			AND {action_taken}
+			AND loan_purpose in ('1', '3')
+			AND amount not like '%NA%'
+			AND income not like '%NA%'
+			AND amount not like '%na%'
+			AND income not like '%na%'
+			GROUP BY year, state, county;
+		"""
+		return SQL.format(source_table=source_table, metric_text=metric_text, action_taken=action_taken)
+	else:
+		print('the SQL function you selected is not currently supported')
+		raise NotImplementedError
+
+
 def agg_SQL(source_table, action):
 	#FIXME change action to a passed format variable
 	"""returns SQL_base with source table formatted into the query text
@@ -21,10 +59,10 @@ def agg_SQL(source_table, action):
 	,state
 	,county
 	,CONCAT(state, county) AS fips
-	,ROUND(AVG(amount::INTEGER),2) AS loan_average_app
-	,ROUND(AVG(income::INTEGER),2) AS income_average_app
-	,COUNT(concat(agency, rid)) AS count_app
-	,SUM(amount::INTEGER) AS value_app
+	,ROUND(AVG(amount::INTEGER),2) AS loan_average_{action}
+	,ROUND(AVG(income::INTEGER),2) AS income_average_{action}
+	,COUNT(concat(agency, rid)) AS count_{action}
+	,SUM(amount::INTEGER) AS value_{action}
 	FROM {source_table}
 	WHERE
 	          loan_type = '1'
@@ -111,7 +149,8 @@ def create_aggregate_table_SQL(table, action):
 		no_co_app_loan_average_{action} real,
 		no_co_app_income_average_{action} real,
 		no_co_app_count_{action} real,
-		no_co_app_value_{action} real);
+		no_co_app_value_{action} real)
+		PRIMARY KEY(fips);
 		COMMIT;"""
 	return SQL.format(create_table=table, action=action)
 
@@ -188,3 +227,7 @@ def format_load_SQL(table, data):
 	SQL = """COPY {table} FROM '{path}' DELIMITER ',' CSV HEADER; COMMIT;"""
 	return SQL.format(table=table, path=data)
 
+def insert_metric(table, data, merge_key):
+	"""Formats a SQL statement to Insert a single column into an existing table by merging on the merge_key"""
+	SQL = """INSERT
+	"""
