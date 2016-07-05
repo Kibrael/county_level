@@ -5,22 +5,20 @@
 def add_column(table='county_apps_2000', column='new_col', data_type='varchar(10)'):
 	"""formats a SQL statement to add a new column to an existing SQL table"""
 
-	SQL = """ALTER TABLE {table} ADD COLUMN {column} {data_type}"""
+	SQL = """ALTER TABLE {table} DROP COLUMN IF EXISTS {column}; COMMIT;
+		   ALTER TABLE {table} ADD COLUMN {column} {data_type}; COMMIT;"""
 	return SQL.format(table=table, column=column, data_type=data_type)
 
 
-def agg_new_col(source_table='hmdalar2000', pg_func='sum', column='income', action_taken="action != '1'"):
+def agg_new_col(source_table='hmdalar2000', pg_func='sum', column='income', action_taken="action != '1' ", new_col='test_col'):
 	"""Returns a SQL statement that aggregates one column of data to the county level for a single year of HMDA data
 	the default values return SQL for calculating the sum of incomes by county"""
 
 	metric_list = ['sum', 'count', 'stddev_samp', 'stddev_pop', 'max', 'min'] #list of implemented PostgreSQL aggregate functions
 
 	if pg_func in metric_list:
-		metric_text = pg_func + "(" + column + "::real)"
+		metric_text = pg_func + "(" + column + "::real) AS " + new_col
 		SQL = """SELECT
-			year,
-			state,
-			county,
 			concat(state,county) AS fips,
 			{metric_text}
 			FROM {source_table}
@@ -28,10 +26,8 @@ def agg_new_col(source_table='hmdalar2000', pg_func='sum', column='income', acti
 			          loan_type = '1'
 			AND {action_taken}
 			AND loan_purpose in ('1', '3')
-			AND amount not like '%NA%'
-			AND income not like '%NA%'
-			AND amount not like '%na%'
-			AND income not like '%na%'
+			AND amount not ilike '%NA%'
+			AND income not ilike '%NA%'
 			GROUP BY year, state, county;
 		"""
 		return SQL.format(source_table=source_table, metric_text=metric_text, action_taken=action_taken)
@@ -224,10 +220,15 @@ def drop_table(table):
 
 def format_load_SQL(table, data):
 	"""Returns a formatted SQL statement to load a CSV file into the specified table """
-	SQL = """COPY {table} FROM '{path}' DELIMITER ',' CSV HEADER; COMMIT;"""
-	return SQL.format(table=table, path=data)
+	SQL = """COPY {table} FROM '{data}' DELIMITER ',' CSV HEADER; COMMIT;"""
+	return SQL.format(table=table, data=data)
 
 def insert_metric(table, data, merge_key):
 	"""Formats a SQL statement to Insert a single column into an existing table by merging on the merge_key"""
 	SQL = """INSERT
 	"""
+
+def select_agg_table(table='county_apps_2000'):
+	"""Selects all data from a single year of aggregate HMDA data """
+	SQL = """ SELECT * FROM {table}"""
+	return SQL.format(table=table)
