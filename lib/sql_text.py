@@ -152,66 +152,11 @@ def create_aggregate_table_SQL(table, action):
 
 def county_years_SQL(app_table, orig_table, fips):
 	"""Returns a SQL select statement that combines columns from tables containing application and origination data for a specified county"""
-	SQL = """SELECT
-		app.year
-		,app.state
-		,app.county
-		,app.fips
-		,loan_average_orig
-		,income_average_orig
-		,count_orig
-		,value_orig
-		,native_loan_average_orig
-		,native_income_average_orig
-		,native_count_orig
-		,native_value_orig
-		,black_loan_average_orig
-		,black_income_average_orig
-		,black_count_orig
-		,black_value_orig
-		,asian_loan_average_orig
-		,asian_income_average_orig
-		,asian_count_orig
-		,asian_value_orig
-		,white_loan_average_orig
-		,white_income_average_orig
-		,white_count_orig
-		,white_value_orig
-		,hawaiian_loan_average_orig
-		,hawaiian_income_average_orig
-		,hawaiian_count_orig
-		,hawaiian_value_orig
-		,loan_average_app
-		,income_average_app
-		,count_app
-		,value_app
-		,native_loan_average_app
-		,native_income_average_app
-		,native_count_app
-		,native_value_app
-		,black_loan_average_app
-		,black_income_average_app
-		,black_count_app
-		,black_value_app
-		,asian_loan_average_app
-		,asian_income_average_app
-		,asian_count_app
-		,asian_value_app
-		,white_loan_average_app
-		,white_income_average_app
-		,white_count_app
-		,white_value_app
-		,hawaiian_loan_average_app
-		,hawaiian_income_average_app
-		,hawaiian_count_app
-		,hawaiian_value_app
-		FROM {app_table} AS app
+	SQL = """SELECT * FROM {app_table} AS app
 		FULL OUTER JOIN {orig_table} AS orig
 		ON app.fips = orig.fips
 		WHERE app.fips = cast({fips} AS VARCHAR(5))"""
 	return SQL.format(app_table=app_table, orig_table=orig_table, fips=fips)
-
-
 
 def drop_table(table):
 	"""Returns a SQL statement that drops the passed table if it exists"""

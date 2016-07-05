@@ -30,16 +30,6 @@ orig_path = 'data/holding/originations/'
 app_data_path = "/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applications/" #psycopg2 requires an absolute path from which to copy files
 orig_data_path = '/Users/roellk/Desktop/HMDA/data_analysis/data/holding/originations/'
 
-sorted_app_cols = ['year', 'state', 'county', 'fips', 'loan_average_app', 'income_average_app', 'count_app', \
-'value_app', 'native_loan_average_app', 'native_income_average_app', 'native_count_app', 'native_value_app', \
-'black_loan_average_app', 'black_income_average_app', 'black_count_app', 'black_value_app', 'asian_loan_average_app', \
-'asian_income_average_app', 'asian_count_app', 'asian_value_app', 'white_loan_average_app', 'white_income_average_app', \
-'white_count_app', 'white_value_app', 'hawaiian_loan_average_app', 'hawaiian_income_average_app', 'hawaiian_count_app', \
-'hawaiian_value_app', 'not_applicable_loan_average_app', 'not_applicable_income_average_app', 'not_applicable_count_app', \
-'not_applicable_value_app', 'not_provided_loan_average_app', 'not_provided_income_average_app', 'not_provided_count_app', \
-'not_provided_value_app,', 'no_co_app_loan_average_app', 'no_co_app_income_average_app', 'no_co_app_count_app', \
-'no_co_app_value_app']
-
 #FIXME remove positional arguments from functions
 def agg_new_metric(conn, new_metric_SQL):
 	"""Aggregates one field of data from a single year of HMDA LAR data, returns the result as a pandas dataframe """
