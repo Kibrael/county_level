@@ -16,13 +16,12 @@ from lib.sql_text import *
 
 conn = psycopg2.connect("dbname=hmdamaster user=roellk") #connect and return connection
 cur = conn.cursor()#instantiate cursor object to use in SQL queries
-
-hmda_year = 2000 #FIXME this needs to align with source_tables - zip tuples?
+cbsa_df = pd.read_csv('tract_to_cbsa_2010.csv', sep='|')
+fips_list = list(set(cbsa_df.county.ravel()))
 
 for source_table in source_tables:
-
-	counties_apps_df = agg_df(source_table, 'app', conn) #set initial application dataframe for 1 year of aggregate county data
-	counties_origs_df = agg_df(source_table, 'orig', conn) #set initial origination dataframe for 1 year of aggregate county data
+	counties_apps_df = agg_df(source_table=source_table, action='app', conn=conn) #set initial application dataframe for 1 year of aggregate county data
+	counties_origs_df = agg_df(source_table=source_table, action='orig', conn=conn) #set initial origination dataframe for 1 year of aggregate county data
 
 	for race in race_list.keys(): #iterate over race codes to aggregate county HMDA activity by race
 		demo_app_df = race_agg_df(source_table, 'app', race, race_list[race], conn) #create a dataframe of county level aggregates for a race
@@ -33,19 +32,30 @@ for source_table in source_tables:
 
 	check_path(app_path) #check if file path exists, if not then create it
 	check_path(orig_path) #check if file path exists, if not then create it
-	print('writing aggregate files for {year}'.format(year=str(hmda_year)))
-	#FIXME sort columns before writing
 
-	counties_apps_df = counties_apps_df.sort(axis=1, columns=sorted_app_cols)
+	#drop rows with invalid fips
+
+	# for fips in list(counties_apps_df.fips.ravel()):
+	# 	print(list(counties_apps_df.fips.ravel()))
+	# 	if fips not in fips_list:
+	# 		print(fips + " not in list")
+	# 		#print(fips_list)
+	# 		counties_apps_df.drop(fips, axis=1, inplace=True)
+	# for fips in counties_origs_df.fips:
+	# 	if fips not in fips_list:
+	# 		counties_origs_df.drop(fips, axis=0, inplace=True)
+	#counties_apps_df = counties_apps_df.sort(axis=1, columns=sorted_app_cols)
+	#FIXME ensure columns are dtyped appropriately IE state as object or varchar 2
+	print('writing aggregate files for {year}'.format(year=source_table[-4:]))
 	counties_apps_df.to_csv(path_or_buf=app_path+source_table+"_applications.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
 	counties_origs_df.to_csv(path_or_buf=orig_path+source_table+"_originations.csv", index=False) #write 1 year of aggregated data to CSV (all counties)
 
 	#set table names for data load
-	app_table =  'county_apps_' + str(hmda_year)#county_apps_yyyy
-	orig_table =  'county_orig_' + str(hmda_year) #county_orig_yyyy
+	app_table =  'county_apps_' + source_table[-4:]#county_apps_yyyy
+	orig_table =  'county_orig_' + source_table[-4:] #county_orig_yyyy
 
 	#drop old tables annual aggregate tables for originations and applications
-	print('dropping old aggregate tables and creating new for year {year}'.format(year=count))
+	print('dropping old aggregate tables and creating new for year {year}'.format(year=source_table[-4:]))
 	cur.execute(drop_table(app_table),)
 	cur.execute(drop_table(orig_table),)
 
@@ -60,8 +70,8 @@ for source_table in source_tables:
 	print("creating {table}".format(table=orig_table))
 
 	#set data to load
-	app_data = app_data_path + 'hmdalar' + str(hmda_year) + '_applications.csv' #set application aggregate data file
-	orig_data = orig_data_path + 'hmdalar' + str(hmda_year) + '_originations.csv' #set origination aggregate data file
+	app_data = app_data_path + 'hmdalar' + source_table[-4:] + '_applications.csv' #set application aggregate data file
+	orig_data = orig_data_path + 'hmdalar' + source_table[-4:] + '_originations.csv' #set origination aggregate data file
 
 	#format SQL statements to load data to annual county-level aggregate tables
 	load_app_SQL = format_load_SQL(app_table, app_data)
@@ -72,7 +82,7 @@ for source_table in source_tables:
 	print("loading data into {app_table}".format(app_table=app_table))
 	cur.execute(load_orig_SQL,)
 	print("loading data into {orig_table}".format(orig_table=orig_table))
-	hmda_year += 1 #FIXME align with source tables
+
 
 
 

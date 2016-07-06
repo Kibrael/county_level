@@ -12,7 +12,7 @@ import os
 import pandas as pd
 import psycopg2
 
-from lib.agg_funcs import get_CBSA_df, race_dict, income_multiple, percent_change, source_tables, app_delta_cols, orig_delta_cols, check_path
+from lib.agg_funcs import *
 from lib.sql_text import county_years_SQL
 
 
@@ -45,29 +45,25 @@ sorted_list = ['year', 'state', 'county', 'fips', 'loan_average_app', 'loan_aver
 cbsa_df = get_CBSA_df('tract_to_cbsa_2010.csv', '|') #loads CBSA data and left pads 0's
 fips_list = set(cbsa_df.county.ravel()) #remove duplicates
 
-#select data for 2000-2014
+#select data for years in source_tables list
 for fips in list(set(fips_list)):
 	first = True
 	state = fips[:2]
 	county = fips[2:]
-	path = "data/"+ state+"/"+fips + "/"
-	year = 2000 #FIXME move to library or remove in favor of string splicing
-	app_start = "county_apps_"
-	orig_start = "county_orig_"
+	path = "data/"+ state+"/"+fips + "/" #geographic hierarchy path for storing county data
 
-	for num in range(len(source_tables)):
-		app_table = app_start + str(year+num) #FIXME change to string slice, last 4 digits
-		orig_table = orig_start + str(year+num) #FIXME change to string slice, last 4 digits
-		SQL = county_years_SQL(app_table, orig_table, fips)
-
+	for table in source_tables:
+		app_table = "county_apps_"+ table[-4:] #the year must be the last 4 characters of the table name
+		orig_table = "county_orig_" + table[-4:]
+		SQL = county_years_SQL(app_table, orig_table, fips) #format SQL statement text
 		df = pd.read_sql_query(SQL, conn) #load query results to dataframe
 		if first == True:
 			out_file = df #establish outfile with first year containing data
-			print("initial df for {year} and {fips}".format(year=str(year+num), fips=fips))
+			print("initial df for {year} and {fips}".format(year=table[-4:], fips=fips))
 			first = False
 		else:
 			out_file = pd.concat([out_file, df], axis=0) #append a year to a county dataframe
-			print("concat {year}".format(year=str(year+num)))
+			print("concat {year}".format(year=table[-4:]))
 
 	#create income multiples for entire county
 	income_multiple(df=out_file, action='app', numerator='loan_average_app', denominator='income_average_app')

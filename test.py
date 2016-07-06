@@ -1,3 +1,10 @@
+##########################
+#06/24/2016 K. David Roell CFPB
+#prototype for creating dynamic SQL schemas
+#
+#
+##################################
+
 from collections import OrderedDict
 import psycopg2
 import os

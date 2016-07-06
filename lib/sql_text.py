@@ -36,7 +36,7 @@ def agg_new_col(source_table='hmdalar2000', pg_func='sum', column='income', acti
 		raise NotImplementedError
 
 
-def agg_SQL(source_table, action):
+def agg_SQL(source_table, action='orig'):
 	#FIXME change action to a passed format variable
 	"""returns SQL_base with source table formatted into the query text
 	    Used to aggregate LAR data to the county level for a single year LAR table
@@ -68,9 +68,11 @@ def agg_SQL(source_table, action):
 	AND income not like '%NA%'
 	AND amount not like '%na%'
 	AND income not like '%na%'
+	AND state != 'NA'
+	AND county not LIKE '%NA%'
 	GROUP BY year, state, county;"""
 
-	return SQL_base.format(source_table=source_table, action_taken=action_taken)
+	return SQL_base.format(source_table=source_table, action_taken=action_taken, action=action)
 
 def agg_demo_SQL(source_table, race_code, race_name, action):
 	"""returns SQL_base with source table, race code and race name formatted into the query text
@@ -99,6 +101,8 @@ def agg_demo_SQL(source_table, race_code, race_name, action):
 		AND income not like '%NA%'
 		AND amount not like '%na%'
 		AND income not like '%na%'
+		AND state != 'NA'
+		AND county not LIKE '%NA%'
 		GROUP BY CONCAT(state, county);"""
 
 	return SQL_base.format(source_table=source_table, race_code=race_code, race_name=race_name, action_taken=action_taken)
@@ -145,8 +149,7 @@ def create_aggregate_table_SQL(table, action):
 		no_co_app_loan_average_{action} real,
 		no_co_app_income_average_{action} real,
 		no_co_app_count_{action} real,
-		no_co_app_value_{action} real)
-		PRIMARY KEY(fips);
+		no_co_app_value_{action} real);
 		COMMIT;"""
 	return SQL.format(create_table=table, action=action)
 
@@ -162,6 +165,11 @@ def drop_table(table):
 	"""Returns a SQL statement that drops the passed table if it exists"""
 	drop_SQL = """DROP TABLE IF EXISTS {drop_table}; COMMIT;"""
 	return drop_SQL.format(drop_table=table)
+
+def empty_table(table):
+	"""deletes all data on a table but does not drop it"""
+	SQL = """DELETE FROM {table}; COMMIT;"""
+	return SQL.format(table=table)
 
 def format_load_SQL(table, data):
 	"""Returns a formatted SQL statement to load a CSV file into the specified table """

@@ -17,7 +17,6 @@ race_dict = {'1': 'native', '2': 'asian', '3': 'black', '4': 'hawaiian', '5': 'w
 source_tables = ['hmdalar2000', 'hmdalar2001', 'hmdalar2002', 'hmdalar2003', 'hmdalar2004', 'hmdalar2005', 'hmdalar2006',
 		'hmdalar2007', 'hmdalar2008', 'hmdalar2009', 'hmdalar2010', 'hmdalar2011', 'hmdalar2012', 'hmdalar2013', 'hmdalar2014']
 
-#source_table_years = ()
 #set column names to pass to percent_change to create year over year change values
 app_delta_cols = ['loan_average_app', 'income_average_app', 'count_app', 'value_app', 'income_multiple_app']
 orig_delta_cols = ['loan_average_orig', 'income_average_orig', 'count_orig', 'value_orig', 'income_multiple_orig']
@@ -31,18 +30,10 @@ app_data_path = "/Users/roellk/Desktop/HMDA/data_analysis/data/holding/applicati
 orig_data_path = '/Users/roellk/Desktop/HMDA/data_analysis/data/holding/originations/'
 
 #FIXME remove positional arguments from functions
-def agg_new_metric(conn, new_metric_SQL):
-	"""Aggregates one field of data from a single year of HMDA LAR data, returns the result as a pandas dataframe """
-
-
-	print("aggregating data for new metric")
-	return pd.read_sql_query(new_metric_SQL, conn)
-	#except:
-	#	print("big trouble on your datas")
 
 def agg_df(source_table, action, conn):
 	"""Calls agg_SQL to create a SQL query and execute it to return a dataframe"""
-	app_SQL = agg_SQL(source_table, action) #format SQL query with data source table
+	app_SQL = agg_SQL(source_table=source_table, action=action) #format SQL query with data source table
 	try: #read results of SQL query into data frame
 		print("executing {action} aggregation on {table}".format(action=action, table=source_table))
 		return pd.read_sql_query(app_SQL, conn) #query LAR database and load county level aggregates to a dataframe
